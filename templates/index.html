@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Latest Posts</h1>
+    {% for post in posts.items %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <p class="card-text">{{ post.content | truncate(50) | markdown | safe}}</p>
+            <a href="{{ url_for('show_post', post_id=post.id) }}" class="btn btn-primary">Read more</a>
+        </div>
+    </div>
+    {% endfor %}
+
+    {{ pagination.info }}
+{{ pagination.links }}
+</div>
+{% endblock %}
+
+

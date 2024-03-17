@@ -1,0 +1,17 @@
+<!-- show_post.html -->
+{% extends "base.html" %}
+{% block title %}Post Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ post.title }}</h1>
+    <p><strong>Author:</strong> {{ post.author.username }}</p>
+    <p><strong>Date:</strong> {{ formatted_date }}</p>
+    <p>{{ post.content | markdown | safe }}</p>
+
+    {% if session['id'] == post.author_id or session['role'] == 'admin' %}
+    <a href="{{ url_for('delete_post', post_id=post.id) }}" class="btn btn-danger">Delete</a>
+    <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-primary">Edit</a>
+    {% endif %}
+</div>
+{% endblock %}
