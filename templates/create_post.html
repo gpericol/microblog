@@ -3,6 +3,7 @@
 {% block content %}
 <div class="container">
     <h1>Create Post</h1>
+    {{ flask_macro.render_flashed_messages() }}
     <form method="post">
         {{ form.hidden_tag() }}
         <div class="mb-3">

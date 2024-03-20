@@ -7,6 +7,7 @@ from models import *
 from forms import *
 import markdown2
 import bleach
+from flask_wtf.csrf import CSRFProtect
 
 # create the extension
 app = Flask(__name__)
@@ -15,10 +16,17 @@ app.config['SECRET_KEY'] = 'Spread_Love'
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blog.db"
 POSTS_PER_PAGE = 1
 
+csrf = CSRFProtect(app)
+
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(f'Error in field "{getattr(form, field).label.text}": {error}', 'error')
 
 @app.template_filter('markdown')
 def markdown_to_html(markdown_text):
@@ -90,15 +98,13 @@ def create_user():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-        new_user = User(username=username, password=password, role='moderator')
+        password_hash = generate_password_hash(password)
+        new_user = User(username=username, password=password_hash, role='user')
         db.session.add(new_user)
         db.session.commit()
-        flash('User created successfully!', 'success')
         return redirect(url_for('users'))
     else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'Error in field "{getattr(form, field).label.text}": {error}', 'error')
+        flash_errors(form)
     return render_template('create_user.html', form=form)
 
 @app.route('/change_password/<int:user_id>', methods=['GET', 'POST'])
@@ -110,8 +116,9 @@ def change_password(user_id):
         new_password = form.new_password.data
         user.password = generate_password_hash(new_password)
         db.session.commit()
-        flash('Password changed successfully!', 'success')
         return redirect(url_for('users'))
+    else:
+        flash_errors(form)
     return render_template('change_password.html', form=form, user=user)
 
 
@@ -127,6 +134,8 @@ def create_post():
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for('index'))
+    else:
+        flash_errors(form)
     return render_template('create_post.html', form=form)
 
 @app.route('/edit_post/<int:post_id>', methods=['GET', 'POST'])
@@ -139,10 +148,12 @@ def edit_post(post_id):
         post.content = form.content.data
         db.session.commit()
         return redirect(url_for('index'))
+    else:
+        flash_errors(form)
     return render_template('create_post.html', form=form, post=post)
 
 @app.route('/delete_post/<int:post_id>', methods=['GET'])
-@check_role(['admin', 'user'])
+@check_role(['admin'])
 def delete_post(post_id):
     post = Post.query.get_or_404(post_id)
     db.session.delete(post)

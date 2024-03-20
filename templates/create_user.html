@@ -3,9 +3,7 @@
 {% block content %}
 <div class="container">
     <h1>Create User</h1>
-    {% for message in form.username.errors %}
-        <div class="alert alert-danger">{{ message }}</div>
-    {% endfor %}
+    {{ flask_macro.render_flashed_messages() }}
     <form method="post">
         {{ form.hidden_tag() }}
         <div class="mb-3">
