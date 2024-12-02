@@ -142,6 +142,10 @@ def create_post():
 @check_role(['admin', 'user'])
 def edit_post(post_id):
     post = Post.query.get_or_404(post_id)
+
+    if post.author_id != session.get('id') and session.get('role') != 'admin':
+        return redirect(url_for('index'))
+
     form = CreatePostForm(obj=post)
     if form.validate_on_submit():
         post.title = form.title.data
